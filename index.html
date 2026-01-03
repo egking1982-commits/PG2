@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Gym | Captain Rehab V24</title>
+    <title>Power Gym | Captain Rehab V25</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -24,8 +24,8 @@
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: center; }
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:200; justify-content:center; align-items:center; }
-        .modal-content { background:var(--navy); width:90%; max-width:500px; padding:25px; border-radius:20px; border:1px solid var(--gold); }
+        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:200; justify-content:center; align-items:center; }
+        .modal-content { background:var(--navy); width:90%; max-width:500px; padding:25px; border-radius:20px; border:1px solid var(--gold); text-align:center; }
         .tip-box { border-right: 4px solid var(--gold); background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 10px; margin-top: 10px; font-size: 0.9rem; }
     </style>
 </head>
@@ -38,6 +38,15 @@
             <input type="text" id="uInp" class="p-input" placeholder="اسم المستخدم">
             <input type="password" id="pInp" class="p-input" placeholder="كلمة المرور">
             <button class="p-btn" style="width:100%" onclick="core.login()">دخول</button>
+        </div>
+    </div>
+
+    <div id="frozenScreen" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-snowflake" style="font-size: 4rem; color: #00ccff; margin-bottom: 20px;"></i>
+            <h2 style="color: #fff;">عذراً.. الحساب مجمد</h2>
+            <p>تم تجميد حسابك مؤقتاً. يرجى تجديد الاشتراك أو مراسلة الكابتن رحاب لتفعيل الحساب مرة أخرى.</p>
+            <button class="p-btn" style="width:100%; margin-top: 20px;" onclick="location.reload()">العودة لتسجيل الدخول</button>
         </div>
     </div>
 
@@ -139,7 +148,13 @@
             else {
                 const snap = await get(ref(db, 'members'));
                 const m = Object.values(snap.val()||{}).find(x => x.user === u && x.pass === p);
-                if(m) { this.activeId = m.id; this.showUI('user', m); } else alert('بيانات خاطئة');
+                if(m) {
+                    if(m.status === 'frozen') {
+                        document.getElementById('frozenScreen').style.display = 'flex';
+                        return;
+                    }
+                    this.activeId = m.id; this.showUI('user', m);
+                } else alert('بيانات خاطئة');
             }
         },
         showUI: (role, data) => {
@@ -158,11 +173,14 @@
                 const selector = document.getElementById('memberSelector'); selector.innerHTML = '<option value="">اختر البطلة</option>';
                 Object.values(snap.val()||{}).forEach(m => {
                     selector.innerHTML += `<option value="${m.id}">${m.name}</option>`;
-                    tbody.innerHTML += `<tr><td>${m.name}</td><td>${m.status}</td><td>
-                        <i class="fas fa-edit" style="color:var(--gold); cursor:pointer" onclick="admin.openEdit('${m.id}')"></i> |
-                        <i class="fas fa-snowflake" style="color:var(--danger); cursor:pointer" onclick="admin.toggle('${m.id}','${m.status}')"></i> |
-                        <i class="fas fa-comment" style="color:#0088ff; cursor:pointer" onclick="admin.openChat('${m.id}')"></i>
-                    </td></tr>`;
+                    tbody.innerHTML += `<tr>
+                        <td>${m.name}</td>
+                        <td style="color:${m.status==='frozen'?'var(--danger)':'var(--success)'}">${m.status==='frozen'?'مجمد':'نشط'}</td>
+                        <td>
+                            <button class="p-btn" style="padding:5px 10px; display:inline-flex" onclick="admin.openEdit('${m.id}')"><i class="fas fa-edit"></i></button>
+                            <button class="p-btn" style="padding:5px 10px; display:inline-flex; background:${m.status==='frozen'?'var(--success)':'var(--danger)'}" onclick="admin.toggle('${m.id}','${m.status}')"><i class="fas fa-snowflake"></i></button>
+                            <button class="p-btn" style="padding:5px 10px; display:inline-flex; background:#0088ff" onclick="admin.openChat('${m.id}')"><i class="fas fa-comment"></i></button>
+                        </td></tr>`;
                 });
             });
         },
@@ -183,9 +201,13 @@
             document.getElementById('edCal').value = s.val().calories || 0;
             document.getElementById('editModal').style.display='flex';
         },
-        saveEdit: () => {
-            update(ref(db, 'members/'+core.activeId), { name: document.getElementById('edName').value, calories: document.getElementById('edCal').value });
+        saveEdit: async () => {
+            await update(ref(db, 'members/'+core.activeId), { 
+                name: document.getElementById('edName').value, 
+                calories: document.getElementById('edCal').value 
+            });
             document.getElementById('editModal').style.display='none';
+            alert('تم تحديث البيانات والمزامنة بنجاح!');
         },
         toggle: (id, s) => update(ref(db, 'members/'+id), {status: s==='active'?'frozen':'active'}),
         openChat: (id) => { core.activeId = id; user.listen(); }
@@ -196,16 +218,17 @@
             document.getElementById('userPanel').style.display='block';
             onValue(ref(db, 'members/'+core.activeId), (snap) => {
                 const m = snap.val(); if(!m) return;
-                // تحديث السعرات
+                // إذا تم التجميد والبطلة داخل الموقع
+                if(m.status === 'frozen') { location.reload(); return; }
+                
                 document.getElementById('uCalDisp').innerText = m.calories || '0';
-                // النصائح اليومية
                 const tips = ["اشربي 3 لتر ماء يومياً", "البروتين أساسي في وجباتك", "التزمي بساعات النوم لنتائج أفضل", "لا تنسي تفعيل النشاط اليومي"];
                 document.getElementById('tipContainer').innerHTML = "<b>نصيحة اليوم:</b> " + tips[Math.floor(Math.random()*tips.length)];
-                // الشات الشامل
+                
                 document.getElementById('chatBox').innerHTML = (m.chat || []).map(msg => `
                     <div class="msg ${msg.s}">
                         ${msg.t ? `<div>${msg.t}</div>` : ''}
-                        ${msg.file ? (msg.type.includes('image') ? `<img src="${msg.file}">` : `<video controls src="${msg.file}"></video>`) : ''}
+                        ${msg.file ? (msg.type?.includes('image') ? `<img src="${msg.file}">` : `<video controls src="${msg.file}"></video>`) : ''}
                         ${msg.audio ? `<audio controls src="${msg.audio}"></audio>` : ''}
                     </div>`).join('');
                 document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
@@ -219,7 +242,7 @@
                 wa:document.getElementById('m3').value, h:document.getElementById('m4').value,
                 date:new Date().toLocaleDateString() 
             });
-            update(ref(db, 'members/'+core.activeId), {measures: ms, points: (m.points||0)+10});
+            await update(ref(db, 'members/'+core.activeId), {measures: ms, points: (m.points||0)+10});
             alert('تم الحفظ بنجاح 🏆');
         }
     };
@@ -256,7 +279,7 @@
             const txt = document.getElementById('chatMsg').value; if(!txt) return;
             const s = await get(ref(db, `members/${core.activeId}/chat`)); const c = s.val() || [];
             c.push({s: core.role==='admin'?'cap':'user', t: txt});
-            update(ref(db, 'members/'+core.activeId), {chat: c});
+            await update(ref(db, 'members/'+core.activeId), {chat: c});
             document.getElementById('chatMsg').value = '';
         },
         upload: (el) => {
@@ -265,7 +288,7 @@
             reader.onload = async (e) => {
                 const s = await get(ref(db, `members/${core.activeId}/chat`)); const c = s.val() || [];
                 c.push({s: core.role==='admin'?'cap':'user', file: e.target.result, type: file.type});
-                update(ref(db, 'members/'+core.activeId), {chat: c});
+                await update(ref(db, 'members/'+core.activeId), {chat: c});
             };
             reader.readAsDataURL(file);
         }
