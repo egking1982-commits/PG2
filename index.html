@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Gym | Captain Rehab V25</title>
+    <title>Power Gym | Captain Rehab V26</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
@@ -27,9 +27,14 @@
         .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:200; justify-content:center; align-items:center; }
         .modal-content { background:var(--navy); width:90%; max-width:500px; padding:25px; border-radius:20px; border:1px solid var(--gold); text-align:center; }
         .tip-box { border-right: 4px solid var(--gold); background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 10px; margin-top: 10px; font-size: 0.9rem; }
+        
+        /* تأثير التجميد الجديد - مثل v15 */
+        #frozenOverlay { display:none; position:fixed; top:80px; left:0; width:100%; height:calc(100% - 80px); background:rgba(10, 14, 23, 0.98); z-index:150; flex-direction:column; justify-content:center; align-items:center; backdrop-filter: blur(10px); }
     </style>
 </head>
 <body>
+
+    <audio id="msgTone" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
 
     <div id="loginPage">
         <div class="p-card" style="width: 320px; margin: 100px auto; text-align: center;">
@@ -37,22 +42,22 @@
             <select id="loginRole" class="p-input"><option value="user">دخول بطلة</option><option value="admin">لوحة الكابتن</option></select>
             <input type="text" id="uInp" class="p-input" placeholder="اسم المستخدم">
             <input type="password" id="pInp" class="p-input" placeholder="كلمة المرور">
-            <button class="p-btn" style="width:100%" onclick="core.login()">دخول</button>
-        </div>
-    </div>
-
-    <div id="frozenScreen" class="modal">
-        <div class="modal-content">
-            <i class="fas fa-snowflake" style="font-size: 4rem; color: #00ccff; margin-bottom: 20px;"></i>
-            <h2 style="color: #fff;">عذراً.. الحساب مجمد</h2>
-            <p>تم تجميد حسابك مؤقتاً. يرجى تجديد الاشتراك أو مراسلة الكابتن رحاب لتفعيل الحساب مرة أخرى.</p>
-            <button class="p-btn" style="width:100%; margin-top: 20px;" onclick="location.reload()">العودة لتسجيل الدخول</button>
+            <button class="p-btn" style="width:100%" onclick="core.login()">دخول سريع</button>
         </div>
     </div>
 
     <div id="mainApp" style="display: none;">
-        <header><span id="navUserName" style="font-weight:900; color:var(--gold)"></span><button onclick="location.reload()" class="p-btn" style="background:var(--danger); color:#fff">خروج</button></header>
+        <header>
+            <span id="navUserName" style="font-weight:900; color:var(--gold)"></span>
+            <button onclick="location.reload()" class="p-btn" style="background:var(--danger); color:#fff">خروج</button>
+        </header>
         
+        <div id="frozenOverlay">
+            <i class="fas fa-snowflake" style="font-size: 4rem; color: #00ccff; margin-bottom: 20px;"></i>
+            <h2 style="color: #fff;">الحساب مجمد مؤقتاً</h2>
+            <p style="padding: 0 20px;">عذراً بطلتنا، حسابكِ قيد التجميد. يرجى مراسلة الكابتن رحاب للتفعيل.</p>
+        </div>
+
         <div class="container">
             <div id="adminPanel" style="display: none;">
                 <div class="p-card">
@@ -122,7 +127,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC8qS1LqY3Q2P2LmcvM-M3lW9pNBP3o0JU",
@@ -138,22 +143,23 @@
     const db = getDatabase(app);
 
     let mediaRecorder; let audioChunks = []; let isRecording = false;
+    let lastChatCount = 0;
 
     window.core = {
         activeId: null, role: 'user',
         login: async function() {
             const u = document.getElementById('uInp').value, p = document.getElementById('pInp').value;
             this.role = document.getElementById('loginRole').value;
-            if(this.role === 'admin' && p === 'cap123') this.showUI('admin', {name:'الكابتن رحاب'});
-            else {
+            
+            if(this.role === 'admin' && p === 'cap123') {
+                this.showUI('admin', {name:'الكابتن رحاب'});
+            } else {
+                // دخول سريع: جلب بيانات العضو المحدد مباشرة بدلاً من جلب القائمة كاملة
                 const snap = await get(ref(db, 'members'));
                 const m = Object.values(snap.val()||{}).find(x => x.user === u && x.pass === p);
                 if(m) {
-                    if(m.status === 'frozen') {
-                        document.getElementById('frozenScreen').style.display = 'flex';
-                        return;
-                    }
-                    this.activeId = m.id; this.showUI('user', m);
+                    this.activeId = m.id;
+                    this.showUI('user', m);
                 } else alert('بيانات خاطئة');
             }
         },
@@ -177,9 +183,9 @@
                         <td>${m.name}</td>
                         <td style="color:${m.status==='frozen'?'var(--danger)':'var(--success)'}">${m.status==='frozen'?'مجمد':'نشط'}</td>
                         <td>
-                            <button class="p-btn" style="padding:5px 10px; display:inline-flex" onclick="admin.openEdit('${m.id}')"><i class="fas fa-edit"></i></button>
-                            <button class="p-btn" style="padding:5px 10px; display:inline-flex; background:${m.status==='frozen'?'var(--success)':'var(--danger)'}" onclick="admin.toggle('${m.id}','${m.status}')"><i class="fas fa-snowflake"></i></button>
-                            <button class="p-btn" style="padding:5px 10px; display:inline-flex; background:#0088ff" onclick="admin.openChat('${m.id}')"><i class="fas fa-comment"></i></button>
+                            <i class="fas fa-edit" style="color:var(--gold); cursor:pointer; margin-left:10px" onclick="admin.openEdit('${m.id}')"></i>
+                            <i class="fas fa-snowflake" style="color:${m.status==='frozen'?'var(--success)':'var(--danger)'}; cursor:pointer; margin-left:10px" onclick="admin.toggle('${m.id}','${m.status}')"></i>
+                            <i class="fas fa-comment" style="color:#0088ff; cursor:pointer" onclick="admin.openChat('${m.id}')"></i>
                         </td></tr>`;
                 });
             });
@@ -207,7 +213,6 @@
                 calories: document.getElementById('edCal').value 
             });
             document.getElementById('editModal').style.display='none';
-            alert('تم تحديث البيانات والمزامنة بنجاح!');
         },
         toggle: (id, s) => update(ref(db, 'members/'+id), {status: s==='active'?'frozen':'active'}),
         openChat: (id) => { core.activeId = id; user.listen(); }
@@ -218,14 +223,29 @@
             document.getElementById('userPanel').style.display='block';
             onValue(ref(db, 'members/'+core.activeId), (snap) => {
                 const m = snap.val(); if(!m) return;
-                // إذا تم التجميد والبطلة داخل الموقع
-                if(m.status === 'frozen') { location.reload(); return; }
                 
+                // ميزة التجميد (مثل V15): حجب الواجهة دون الخروج
+                const overlay = document.getElementById('frozenOverlay');
+                if(m.status === 'frozen' && core.role === 'user') {
+                    overlay.style.display = 'flex';
+                } else {
+                    overlay.style.display = 'none';
+                }
+                
+                // تحديث لحظي للسعرات
                 document.getElementById('uCalDisp').innerText = m.calories || '0';
-                const tips = ["اشربي 3 لتر ماء يومياً", "البروتين أساسي في وجباتك", "التزمي بساعات النوم لنتائج أفضل", "لا تنسي تفعيل النشاط اليومي"];
+                
+                const tips = ["اشربي 3 لتر ماء يومياً", "البروتين هو سر بناء العضلات", "النوم الكافي يساعد على الاستشفاء", "التزمي بمواعيد الوجبات"];
                 document.getElementById('tipContainer').innerHTML = "<b>نصيحة اليوم:</b> " + tips[Math.floor(Math.random()*tips.length)];
                 
-                document.getElementById('chatBox').innerHTML = (m.chat || []).map(msg => `
+                // الشات والاشعارات الصوتية
+                const chatData = m.chat || [];
+                if(chatData.length > lastChatCount && lastChatCount !== 0) {
+                    document.getElementById('msgTone').play().catch(()=>{});
+                }
+                lastChatCount = chatData.length;
+
+                document.getElementById('chatBox').innerHTML = chatData.map(msg => `
                     <div class="msg ${msg.s}">
                         ${msg.t ? `<div>${msg.t}</div>` : ''}
                         ${msg.file ? (msg.type?.includes('image') ? `<img src="${msg.file}">` : `<video controls src="${msg.file}"></video>`) : ''}
@@ -238,12 +258,10 @@
             const s = await get(ref(db, 'members/'+core.activeId)); const m = s.val();
             const ms = m.measures || [];
             ms.push({ 
-                w:document.getElementById('m1').value, c:document.getElementById('m2').value,
-                wa:document.getElementById('m3').value, h:document.getElementById('m4').value,
-                date:new Date().toLocaleDateString() 
+                w:document.getElementById('m1').value, date:new Date().toLocaleDateString() 
             });
             await update(ref(db, 'members/'+core.activeId), {measures: ms, points: (m.points||0)+10});
-            alert('تم الحفظ بنجاح 🏆');
+            alert('تم الحفظ 🏆');
         }
     };
 
