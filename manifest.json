@@ -1,11 +1,11 @@
 {
-  "name": "Power Gym | Rehab Adel",
+  "name": "Power Gym AI | Rehab Adel",
   "short_name": "Power Gym",
-  "description": "منصة كابتن رحاب عادل لمتابعة البطلات",
+  "description": "منصة كابتن رحاب عادل لمتابعة البطلات وتطوير اللياقة البدنية",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0a0e17",
-  "theme_color": "#d4af37",
+  "background_color": "#050510",
+  "theme_color": "#ffcc33",
   "orientation": "portrait",
   "icons": [
     {
@@ -21,3 +21,4 @@
     }
   ]
 }
+

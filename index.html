@@ -3,111 +3,170 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Power Gym | Captain Rehab V26</title>
+    <title>Power Gym AI | Ultimate Elite V33</title>
+    <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#ffcc33">
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #d4af37; --navy: #0a0e17; --glass: rgba(255,255,255,0.05); --border: rgba(255,255,255,0.1); --success: #00ff88; --danger: #ff4d4d; }
-        body { font-family: 'Cairo', sans-serif; background: var(--navy); color: #fff; margin: 0; }
-        header { padding: 15px 5%; background: rgba(10, 14, 23, 0.95); border-bottom: 2px solid var(--gold); display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index:100; }
-        .container { max-width: 1200px; margin: 20px auto; padding: 0 20px; }
-        .p-card { background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 20px; margin-bottom: 20px; }
-        .p-input { background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 12px; border-radius: 12px; color: white; width: 100%; margin-bottom: 12px; font-family: 'Cairo'; box-sizing: border-box; }
-        .p-btn { background: var(--gold); color: #000; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .chat-box { height: 350px; overflow-y: auto; background: rgba(0,0,0,0.3); border-radius: 15px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 80%; }
-        .msg.cap { background: var(--gold); color: #000; align-self: flex-start; }
-        .msg.user { background: rgba(255,255,255,0.1); align-self: flex-end; }
-        .msg img, .msg video { max-width: 100%; border-radius: 10px; margin-top: 5px; }
-        .measure-img { width: 100%; max-width: 350px; border-radius: 15px; border: 1px solid var(--gold); margin: 10px auto; display: block; }
-        .rec-active { background: var(--danger) !important; color: #fff !important; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; border-bottom: 1px solid var(--border); text-align: center; }
-        .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:200; justify-content:center; align-items:center; }
-        .modal-content { background:var(--navy); width:90%; max-width:500px; padding:25px; border-radius:20px; border:1px solid var(--gold); text-align:center; }
-        .tip-box { border-right: 4px solid var(--gold); background: rgba(212, 175, 55, 0.1); padding: 15px; border-radius: 10px; margin-top: 10px; font-size: 0.9rem; }
         
-        /* تأثير التجميد الجديد - مثل v15 */
-        #frozenOverlay { display:none; position:fixed; top:80px; left:0; width:100%; height:calc(100% - 80px); background:rgba(10, 14, 23, 0.98); z-index:150; flex-direction:column; justify-content:center; align-items:center; backdrop-filter: blur(10px); }
+        :root {
+            --gold: #ffcc33; --purple: #8a2be2; --neon-blue: #00f2ff;
+            --danger: #ff3366; --success: #00ffaa; --bg: #050510;
+            --card-bg: rgba(255, 255, 255, 0.06); --border: rgba(255, 255, 255, 0.12);
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif; background: var(--bg);
+            background-image: radial-gradient(circle at 20% 30%, rgba(138, 43, 226, 0.15) 0%, transparent 40%);
+            color: #fff; margin: 0; min-height: 100vh;
+        }
+
+        header {
+            padding: 15px 5%; background: rgba(5, 5, 16, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 1000;
+        }
+
+        .container { max-width: 1400px; margin: 20px auto; padding: 0 20px; }
+
+        .p-card {
+            background: var(--card-bg); backdrop-filter: blur(15px); border: 1px solid var(--border);
+            border-radius: 20px; padding: 20px; margin-bottom: 20px; transition: 0.3s;
+        }
+
+        .p-input, .p-select, textarea {
+            background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+            padding: 12px; border-radius: 12px; color: white; width: 100%;
+            margin-bottom: 10px; font-family: 'Cairo'; outline: none; box-sizing: border-box;
+        }
+
+        .p-btn {
+            background: linear-gradient(135deg, var(--gold), #ffaa00); color: #000;
+            border: none; padding: 10px 18px; border-radius: 12px; font-weight: 900;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+
+        .chat-box { height: 350px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.2); border-radius: 15px; }
+        .msg { padding: 12px; border-radius: 15px; max-width: 75%; position: relative; }
+        .msg.cap { background: var(--card-bg); border-right: 4px solid var(--gold); align-self: flex-start; }
+        .msg.user { background: var(--purple); align-self: flex-end; }
+        .msg-tools { font-size: 0.7rem; margin-top: 5px; opacity: 0.5; display: flex; gap: 8px; cursor: pointer; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .measure-box { background: rgba(255,255,255,0.03); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid var(--border); }
+        .measure-box input { background: transparent; border: none; color: var(--gold); font-weight: 900; width: 60px; text-align: center; font-size: 1.1rem; outline: none; }
+        
+        .calories-badge { background: var(--gold); color: #000; padding: 5px 12px; border-radius: 10px; font-weight: bold; display: inline-block; margin-left: 10px; }
+        #frozenOverlay { display:none; position:fixed; inset:0; background:rgba(5,5,16,0.97); z-index:10000; flex-direction:column; justify-content:center; align-items:center; }
+        
+        canvas { max-width: 100%; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <audio id="msgTone" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
-
     <div id="loginPage">
-        <div class="p-card" style="width: 320px; margin: 100px auto; text-align: center;">
-            <h2 style="color: var(--gold);">POWER GYM</h2>
-            <select id="loginRole" class="p-input"><option value="user">دخول بطلة</option><option value="admin">لوحة الكابتن</option></select>
-            <input type="text" id="uInp" class="p-input" placeholder="اسم المستخدم">
-            <input type="password" id="pInp" class="p-input" placeholder="كلمة المرور">
-            <button class="p-btn" style="width:100%" onclick="core.login()">دخول سريع</button>
+        <div style="height: 100vh; display: flex; align-items: center; justify-content: center;">
+            <div class="p-card" style="width: 380px; text-align: center; border: 1px solid var(--gold);">
+                <div style="font-size: 3rem; margin-bottom: 10px;">👑</div>
+                <h1 style="color: var(--gold); margin: 0 0 20px 0;">POWER GYM AI</h1>
+                <select id="loginRole" class="p-input">
+                    <option value="user">دخول بطلة</option>
+                    <option value="admin">كابتن رحاب (إدارة)</option>
+                </select>
+                <input type="text" id="uInp" class="p-input" placeholder="اسم المستخدم">
+                <input type="password" id="pInp" class="p-input" placeholder="كلمة المرور">
+                <button class="p-btn" style="width:100%; margin-top: 10px;" onclick="core.login()">دخول للنظام</button>
+            </div>
         </div>
     </div>
 
     <div id="mainApp" style="display: none;">
         <header>
-            <span id="navUserName" style="font-weight:900; color:var(--gold)"></span>
-            <button onclick="location.reload()" class="p-btn" style="background:var(--danger); color:#fff">خروج</button>
+            <div id="navUserName" style="font-weight: 900; color: var(--gold);"></div>
+            <button onclick="location.reload()" class="p-btn" style="background:var(--danger); color:white;">خروج</button>
         </header>
-        
+
         <div id="frozenOverlay">
-            <i class="fas fa-snowflake" style="font-size: 4rem; color: #00ccff; margin-bottom: 20px;"></i>
-            <h2 style="color: #fff;">الحساب مجمد مؤقتاً</h2>
-            <p style="padding: 0 20px;">عذراً بطلتنا، حسابكِ قيد التجميد. يرجى مراسلة الكابتن رحاب للتفعيل.</p>
+            <i class="fas fa-snowflake" style="font-size: 6rem; color: var(--neon-blue); margin-bottom: 20px;"></i>
+            <h1 style="color: var(--neon-blue);">الحساب مجمد ❄️</h1>
+            <p>راجعي الكابتن لإعادة تفعيل اشتراكك</p>
         </div>
 
         <div class="container">
             <div id="adminPanel" style="display: none;">
-                <div class="p-card">
-                    <h3>🧮 حاسبة سعرات البطلات</h3>
-                    <select id="memberSelector" class="p-input" onchange="admin.loadData(this.value)"><option value="">اختر البطلة</option></select>
-                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px">
-                        <input type="number" id="cw" class="p-input" placeholder="الوزن">
-                        <input type="number" id="ch" class="p-input" placeholder="الطول">
-                        <input type="number" id="ca" class="p-input" placeholder="العمر">
+                <div class="grid-2">
+                    <div class="p-card">
+                        <h3><i class="fas fa-edit"></i> تخصيص البرامج</h3>
+                        <select id="ai_target_member" class="p-input" onchange="admin.loadMemberData(this.value)"></select>
+                        <div class="grid-2" style="gap:10px;">
+                            <input id="adm_cal" type="number" class="p-input" placeholder="السعرات">
+                            <input id="adm_pro" type="number" class="p-input" placeholder="البروتين">
+                        </div>
+                        <textarea id="adm_breakfast" class="p-input" placeholder="الفطور..."></textarea>
+                        <textarea id="adm_lunch" class="p-input" placeholder="الغداء..."></textarea>
+                        <textarea id="adm_dinner" class="p-input" placeholder="العشاء..."></textarea>
+                        <textarea id="adm_workout" class="p-input" placeholder="التمارين..." rows="4"></textarea>
+                        <input id="adm_advice" class="p-input" placeholder="نصيحة اليوم">
+                        <button class="p-btn" style="width:100%; background:var(--purple); color:#fff;" onclick="admin.updatePlan()">حفظ وإرسال التحديثات</button>
                     </div>
-                    <button class="p-btn" onclick="admin.calculate()">احسبي الآن</button>
-                    <div id="adminCalcRes" style="margin-top:10px; color:var(--success); font-weight:bold"></div>
-                </div>
-                <div class="p-card">
-                    <h3>إدارة المشتركات</h3>
-                    <div style="overflow-x:auto"><table><thead><tr><th>البطلة</th><th>الحالة</th><th>إدارة</th></tr></thead><tbody id="adminTable"></tbody></table></div>
+                    <div class="p-card">
+                        <h3><i class="fas fa-tasks"></i> إدارة المشتركات والوقت</h3>
+                        <div id="adminTable" style="max-height: 580px; overflow-y: auto;"></div>
+                    </div>
                 </div>
             </div>
 
             <div id="userPanel" style="display: none;">
-                <div style="display:grid; grid-template-columns: 1.6fr 1fr; gap:20px" class="user-grid">
+                <div class="grid-2">
                     <div>
-                        <div class="p-card" style="text-align:center">
-                            <h2 id="uCalDisp" style="color:var(--success); font-size:3rem; margin:0">0</h2><p>سعراتك اليومية المحددة</p>
-                            <div id="tipContainer" class="tip-box"></div>
+                        <div class="p-card" style="background: linear-gradient(135deg, var(--gold), #ff9900); color: #000; text-align: center;">
+                            <h4 style="margin:0">أيام التدريب المتبقية</h4>
+                            <div id="u_countdown" style="font-size: 4rem; font-weight: 900;">00</div>
+                            <div id="u_expiry" style="font-weight: bold; opacity: 0.8;"></div>
                         </div>
+
                         <div class="p-card">
-                            <h3><i class="fas fa-ruler-combined"></i> تحديث مقاساتي</h3>
-                            <img src="p_3653sbemj0.png" class="measure-img" alt="دليل المقاسات">
-                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px">
-                                <input type="number" id="m1" class="p-input" placeholder="الوزن">
-                                <input type="number" id="m2" class="p-input" placeholder="الصدر">
-                                <input type="number" id="m3" class="p-input" placeholder="الخصر">
-                                <input type="number" id="m4" class="p-input" placeholder="الأرداف">
-                                <input type="number" id="m5" class="p-input" placeholder="الذراع">
-                                <input type="number" id="m6" class="p-input" placeholder="الفخذ">
-                                <input type="number" id="m7" class="p-input" placeholder="الرقبة">
+                            <h3><i class="fas fa-chart-line"></i> تطور القياسات السبعة</h3>
+                            <div style="margin-bottom: 15px;">
+                                <div class="calories-badge">سعراتك: <span id="u_disp_cal">0</span></div>
+                                <div class="calories-badge" style="background:var(--neon-blue)">بروتين: <span id="u_disp_pro">0</span> جم</div>
                             </div>
-                            <button class="p-btn" style="width:100%" onclick="user.saveMeasures()">حفظ وتحديث التطور 🏆</button>
+                            <div class="grid-3">
+                                <div class="measure-box"><small>وزن</small><input id="m_weight" type="number"></div>
+                                <div class="measure-box"><small>خصر</small><input id="m_waist" type="number"></div>
+                                <div class="measure-box"><small>بطن</small><input id="m_belly" type="number"></div>
+                                <div class="measure-box"><small>أرداف</small><input id="m_hips" type="number"></div>
+                                <div class="measure-box"><small>فخذ</small><input id="m_thigh" type="number"></div>
+                                <div class="measure-box"><small>ذراع</small><input id="m_arm" type="number"></div>
+                                <div class="measure-box"><small>صدر</small><input id="m_chest" type="number"></div>
+                            </div>
+                            <button class="p-btn" style="width:100%; margin-top: 15px;" onclick="user.saveMeasures()">تحديث القياسات والرسم البياني</button>
+                            <canvas id="weightChart" height="150"></canvas>
                         </div>
                     </div>
+
                     <div>
+                        <div class="p-card" style="border-right: 5px solid var(--purple);">
+                            <h3 style="color:var(--purple); margin:0 0 10px 0;">نظامك التفصيلي 🍽️</h3>
+                            <div id="u_diet_data">
+                                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:8px;"><b>🍳 الفطور:</b> <span id="u_view_bf"></span></div>
+                                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px; margin-bottom:8px;"><b>🍗 الغداء:</b> <span id="u_view_lun"></span></div>
+                                <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;"><b>🥗 العشاء:</b> <span id="u_view_din"></span></div>
+                            </div>
+                            <h3 style="color:var(--gold); margin:20px 0 10px 0;">التمارين اليومية 🏋️</h3>
+                            <div id="u_view_work" style="white-space: pre-line; background:rgba(0,0,0,0.3); padding:12px; border-radius:10px;"></div>
+                        </div>
+
                         <div class="p-card">
-                            <h3>شات الكابتن</h3>
                             <div id="chatBox" class="chat-box"></div>
-                            <div style="display:flex; gap:5px; margin-top:10px">
-                                <button class="p-btn" style="background:#444; padding:10px" id="recBtn" onclick="chat.toggleRec()"><i class="fas fa-microphone"></i></button>
-                                <button class="p-btn" style="background:#444; padding:10px" onclick="document.getElementById('fileUp').click()"><i class="fas fa-paperclip"></i></button>
-                                <input type="file" id="fileUp" hidden onchange="chat.upload(this)">
-                                <input type="text" id="chatMsg" class="p-input" style="margin:0" placeholder="رسالة..">
+                            <div style="display: flex; gap: 8px; margin-top: 15px;">
+                                <input id="chatInp" class="p-input" style="margin:0" placeholder="رسالتك للكابتن...">
                                 <button class="p-btn" onclick="chat.send()"><i class="fas fa-paper-plane"></i></button>
                             </div>
                         </div>
@@ -117,200 +176,220 @@
         </div>
     </div>
 
-    <div id="editModal" class="modal"><div class="modal-content">
-        <h3>تعديل بيانات البطلة</h3>
-        <input type="text" id="edName" class="p-input" placeholder="الاسم">
-        <input type="number" id="edCal" class="p-input" placeholder="السعرات المحددة">
-        <button class="p-btn" style="width:100%" onclick="admin.saveEdit()">حفظ التعديلات</button>
-        <button class="p-btn" style="width:100%; margin-top:10px; background:#444" onclick="document.getElementById('editModal').style.display='none'">إلغاء</button>
-    </div></div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC8qS1LqY3Q2P2LmcvM-M3lW9pNBP3o0JU",
         authDomain: "power-gym-c0a65.firebaseapp.com",
         projectId: "power-gym-c0a65",
-        storageBucket: "power-gym-c0a65.firebasestorage.app",
-        messagingSenderId: "781355588548",
-        appId: "1:781355588548:web:0b110ef5b7055731972291",
         databaseURL: "https://power-gym-c0a65-default-rtdb.firebaseio.com/"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
-    let mediaRecorder; let audioChunks = []; let isRecording = false;
-    let lastChatCount = 0;
+    let myChart = null;
 
     window.core = {
         activeId: null, role: 'user',
         login: async function() {
             const u = document.getElementById('uInp').value, p = document.getElementById('pInp').value;
             this.role = document.getElementById('loginRole').value;
-            
-            if(this.role === 'admin' && p === 'cap123') {
+            if(this.role === 'admin' && u === 'captain' && p === '123') {
                 this.showUI('admin', {name:'الكابتن رحاب'});
             } else {
-                // دخول سريع: جلب بيانات العضو المحدد مباشرة بدلاً من جلب القائمة كاملة
                 const snap = await get(ref(db, 'members'));
                 const m = Object.values(snap.val()||{}).find(x => x.user === u && x.pass === p);
-                if(m) {
-                    this.activeId = m.id;
-                    this.showUI('user', m);
-                } else alert('بيانات خاطئة');
+                if(m) { this.activeId = m.id; this.showUI('user', m); } else alert('خطأ في اسم المستخدم أو كلمة المرور');
             }
         },
         showUI: (role, data) => {
             document.getElementById('loginPage').style.display='none';
             document.getElementById('mainApp').style.display='block';
             document.getElementById('navUserName').innerText = data.name;
-            if(role === 'admin') admin.listen(); else user.listen();
+            if(role === 'admin') admin.init(); else user.init();
         }
     };
 
     window.admin = {
-        listen: () => {
+        init: () => {
             document.getElementById('adminPanel').style.display='block';
             onValue(ref(db, 'members'), (snap) => {
-                const tbody = document.getElementById('adminTable'); tbody.innerHTML = '';
-                const selector = document.getElementById('memberSelector'); selector.innerHTML = '<option value="">اختر البطلة</option>';
-                Object.values(snap.val()||{}).forEach(m => {
-                    selector.innerHTML += `<option value="${m.id}">${m.name}</option>`;
-                    tbody.innerHTML += `<tr>
-                        <td>${m.name}</td>
-                        <td style="color:${m.status==='frozen'?'var(--danger)':'var(--success)'}">${m.status==='frozen'?'مجمد':'نشط'}</td>
-                        <td>
-                            <i class="fas fa-edit" style="color:var(--gold); cursor:pointer; margin-left:10px" onclick="admin.openEdit('${m.id}')"></i>
-                            <i class="fas fa-snowflake" style="color:${m.status==='frozen'?'var(--success)':'var(--danger)'}; cursor:pointer; margin-left:10px" onclick="admin.toggle('${m.id}','${m.status}')"></i>
-                            <i class="fas fa-comment" style="color:#0088ff; cursor:pointer" onclick="admin.openChat('${m.id}')"></i>
-                        </td></tr>`;
+                const list = Object.values(snap.val()||{});
+                const sel = document.getElementById('ai_target_member');
+                const table = document.getElementById('adminTable');
+                sel.innerHTML = '<option value="">اختر البطلة</option>'; table.innerHTML = '';
+                list.forEach(m => {
+                    sel.innerHTML += `<option value="${m.id}">${m.name}</option>`;
+                    const days = Math.floor((new Date(m.expiryDate) - new Date()) / (1000*60*60*24));
+                    table.innerHTML += `
+                        <div class="p-card" style="margin-bottom:10px; border-right: 4px solid ${days>5?'var(--success)':'var(--danger)'}">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div><b>${m.name}</b><br><small>المتبقي: ${days} يوم</small></div>
+                                <div style="display:flex; gap:5px;">
+                                    <button class="p-btn" style="padding:5px 10px; background:var(--neon-blue)" onclick="admin.freeze('${m.id}', '${m.status}')">${m.status==='frozen'?'تفعيل':'تجميد'}</button>
+                                    <button class="p-btn" style="padding:5px 10px;" onclick="admin.openChat('${m.id}')">شات</button>
+                                </div>
+                            </div>
+                            <div style="display:flex; gap:8px; margin-top:10px;">
+                                <input type="number" id="add_d_${m.id}" style="width:60px; margin:0" class="p-input" placeholder="+ يوم">
+                                <button class="p-btn" onclick="admin.changeTime('${m.id}', 1)">+</button>
+                                <button class="p-btn" style="background:var(--danger)" onclick="admin.changeTime('${m.id}', -1)">-</button>
+                            </div>
+                        </div>`;
                 });
             });
         },
-        loadData: async (id) => {
+        loadMemberData: async (id) => {
             if(!id) return;
-            const s = await get(ref(db, 'members/'+id)); const m = s.val();
-            document.getElementById('cw').value = m.measures?.[m.measures.length-1]?.w || 70;
-            document.getElementById('ch').value = 160; document.getElementById('ca').value = 25;
-        },
-        calculate: () => {
-            const w = document.getElementById('cw').value, h = document.getElementById('ch').value, a = document.getElementById('ca').value;
-            const res = (10 * w) + (6.25 * h) - (5 * a) - 161;
-            document.getElementById('adminCalcRes').innerText = `الاحتياج: ${Math.round(res * 1.3)} سعرة`;
-        },
-        openEdit: async (id) => {
-            core.activeId = id; const s = await get(ref(db, 'members/'+id));
-            document.getElementById('edName').value = s.val().name;
-            document.getElementById('edCal').value = s.val().calories || 0;
-            document.getElementById('editModal').style.display='flex';
-        },
-        saveEdit: async () => {
-            await update(ref(db, 'members/'+core.activeId), { 
-                name: document.getElementById('edName').value, 
-                calories: document.getElementById('edCal').value 
+            const s = await get(ref(db, 'members/'+id));
+            const d = s.val();
+            ['cal','pro','breakfast','lunch','dinner','workout','advice'].forEach(k => {
+                const el = document.getElementById('adm_'+k);
+                if(el) el.value = d[k] || (k==='cal' || k==='pro' ? '' : '');
             });
-            document.getElementById('editModal').style.display='none';
         },
-        toggle: (id, s) => update(ref(db, 'members/'+id), {status: s==='active'?'frozen':'active'}),
-        openChat: (id) => { core.activeId = id; user.listen(); }
+        updatePlan: async () => {
+            const id = document.getElementById('ai_target_member').value;
+            if(!id) return alert('اختر بطلة أولاً');
+            await update(ref(db, 'members/'+id), {
+                calories: document.getElementById('adm_cal').value,
+                protein: document.getElementById('adm_pro').value,
+                breakfast: document.getElementById('adm_breakfast').value,
+                lunch: document.getElementById('adm_lunch').value,
+                dinner: document.getElementById('adm_dinner').value,
+                workout: document.getElementById('adm_workout').value,
+                advice: document.getElementById('adm_advice').value
+            });
+            alert('تم التحديث بنجاح');
+        },
+        changeTime: async (id, dir) => {
+            const val = parseInt(document.getElementById('add_d_'+id).value || 0) * dir;
+            const s = await get(ref(db, 'members/'+id));
+            let current = new Date(s.val().expiryDate);
+            current.setDate(current.getDate() + val);
+            await update(ref(db, 'members/'+id), { expiryDate: current.toISOString() });
+        },
+        freeze: async (id, curStatus) => {
+            await update(ref(db, 'members/'+id), { status: curStatus === 'frozen' ? 'active' : 'frozen' });
+        },
+        openChat: (id) => { core.activeId = id; user.init(); document.getElementById('userPanel').style.display='block'; }
     };
 
     window.user = {
-        listen: () => {
+        init: () => {
             document.getElementById('userPanel').style.display='block';
             onValue(ref(db, 'members/'+core.activeId), (snap) => {
                 const m = snap.val(); if(!m) return;
+                const days = Math.floor((new Date(m.expiryDate) - new Date()) / (1000*60*60*24));
                 
-                // ميزة التجميد (مثل V15): حجب الواجهة دون الخروج
-                const overlay = document.getElementById('frozenOverlay');
-                if(m.status === 'frozen' && core.role === 'user') {
-                    overlay.style.display = 'flex';
-                } else {
-                    overlay.style.display = 'none';
-                }
+                document.getElementById('u_countdown').innerText = Math.max(0, days);
+                document.getElementById('u_expiry').innerText = "ينتهي في: " + new Date(m.expiryDate).toLocaleDateString('ar-EG');
+                document.getElementById('frozenOverlay').style.display = m.status === 'frozen' ? 'flex' : 'none';
                 
-                // تحديث لحظي للسعرات
-                document.getElementById('uCalDisp').innerText = m.calories || '0';
-                
-                const tips = ["اشربي 3 لتر ماء يومياً", "البروتين هو سر بناء العضلات", "النوم الكافي يساعد على الاستشفاء", "التزمي بمواعيد الوجبات"];
-                document.getElementById('tipContainer').innerHTML = "<b>نصيحة اليوم:</b> " + tips[Math.floor(Math.random()*tips.length)];
-                
-                // الشات والاشعارات الصوتية
-                const chatData = m.chat || [];
-                if(chatData.length > lastChatCount && lastChatCount !== 0) {
-                    document.getElementById('msgTone').play().catch(()=>{});
-                }
-                lastChatCount = chatData.length;
+                document.getElementById('u_disp_cal').innerText = m.calories || 0;
+                document.getElementById('u_disp_pro').innerText = m.protein || 0;
+                document.getElementById('u_view_bf').innerText = m.breakfast || '---';
+                document.getElementById('u_view_lun').innerText = m.lunch || '---';
+                document.getElementById('u_view_din').innerText = m.dinner || '---';
+                document.getElementById('u_view_work').innerText = m.workout || 'بانتظار الجدول...';
 
-                document.getElementById('chatBox').innerHTML = chatData.map(msg => `
+                const lastH = (m.history || []).slice(-1)[0] || {};
+                ['weight','waist','belly','hips','thigh','arm','chest'].forEach(k => {
+                    const el = document.getElementById('m_'+k);
+                    if(el) el.value = lastH[k] || '';
+                });
+
+                user.drawChart(m.history || []);
+
+                const cBox = document.getElementById('chatBox');
+                cBox.innerHTML = (m.chat || []).map((msg, i) => `
                     <div class="msg ${msg.s}">
-                        ${msg.t ? `<div>${msg.t}</div>` : ''}
-                        ${msg.file ? (msg.type?.includes('image') ? `<img src="${msg.file}">` : `<video controls src="${msg.file}"></video>`) : ''}
-                        ${msg.audio ? `<audio controls src="${msg.audio}"></audio>` : ''}
+                        <div>${msg.t}</div>
+                        <div class="msg-tools">
+                            <span onclick="chat.editMsg(${i})"><i class="fas fa-edit"></i> تعديل</span>
+                            <span onclick="chat.delMsg(${i})" style="color:var(--danger)"><i class="fas fa-trash"></i> حذف</span>
+                        </div>
                     </div>`).join('');
-                document.getElementById('chatBox').scrollTop = document.getElementById('chatBox').scrollHeight;
+                cBox.scrollTop = cBox.scrollHeight;
             });
         },
         saveMeasures: async () => {
-            const s = await get(ref(db, 'members/'+core.activeId)); const m = s.val();
-            const ms = m.measures || [];
-            ms.push({ 
-                w:document.getElementById('m1').value, date:new Date().toLocaleDateString() 
+            const h = {
+                weight: document.getElementById('m_weight').value,
+                waist: document.getElementById('m_waist').value,
+                belly: document.getElementById('m_belly').value,
+                hips: document.getElementById('m_hips').value,
+                thigh: document.getElementById('m_thigh').value,
+                arm: document.getElementById('m_arm').value,
+                chest: document.getElementById('m_chest').value,
+                date: new Date().toLocaleDateString('ar-EG', {month:'short', day:'numeric'})
+            };
+            const s = await get(ref(db, 'members/'+core.activeId));
+            const history = s.val().history || [];
+            history.push(h);
+            await update(ref(db, 'members/'+core.activeId), { history: history });
+            alert('تم تحديث قياساتك بنجاح!');
+        },
+        drawChart: (data) => {
+            const ctx = document.getElementById('weightChart').getContext('2d');
+            if(myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date),
+                    datasets: [{
+                        label: 'تطور الوزن (كجم)',
+                        data: data.map(d => d.weight),
+                        borderColor: '#ffcc33',
+                        backgroundColor: 'rgba(255, 204, 51, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#fff' } },
+                        x: { grid: { display: false }, ticks: { color: '#fff' } }
+                    },
+                    plugins: { legend: { display: false } }
+                }
             });
-            await update(ref(db, 'members/'+core.activeId), {measures: ms, points: (m.points||0)+10});
-            alert('تم الحفظ 🏆');
         }
     };
 
     window.chat = {
-        toggleRec: async () => {
-            if (!isRecording) {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    mediaRecorder = new MediaRecorder(stream);
-                    audioChunks = [];
-                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-                    mediaRecorder.onstop = async () => {
-                        const blob = new Blob(audioChunks, { type: 'audio/mp3' });
-                        const reader = new FileReader();
-                        reader.onloadend = async () => {
-                            const s = await get(ref(db, `members/${core.activeId}/chat`)); const c = s.val() || [];
-                            c.push({s: core.role==='admin'?'cap':'user', audio: reader.result});
-                            update(ref(db, 'members/'+core.activeId), {chat: c});
-                        };
-                        reader.readAsDataURL(blob);
-                    };
-                    mediaRecorder.start();
-                    isRecording = true;
-                    document.getElementById('recBtn').classList.add('rec-active');
-                } catch(e) { alert("يرجى السماح بالوصول للميكروفون"); }
-            } else {
-                mediaRecorder.stop();
-                isRecording = false;
-                document.getElementById('recBtn').classList.remove('rec-active');
-            }
-        },
         send: async () => {
-            const txt = document.getElementById('chatMsg').value; if(!txt) return;
-            const s = await get(ref(db, `members/${core.activeId}/chat`)); const c = s.val() || [];
-            c.push({s: core.role==='admin'?'cap':'user', t: txt});
-            await update(ref(db, 'members/'+core.activeId), {chat: c});
-            document.getElementById('chatMsg').value = '';
+            const t = document.getElementById('chatInp').value; if(!t) return;
+            const s = await get(ref(db, 'members/'+core.activeId));
+            const c = s.val().chat || [];
+            c.push({ s: core.role==='admin'?'cap':'user', t });
+            await update(ref(db, 'members/'+core.activeId), { chat: c });
+            document.getElementById('chatInp').value = '';
         },
-        upload: (el) => {
-            const file = el.files[0]; if(!file) return;
-            const reader = new FileReader();
-            reader.onload = async (e) => {
-                const s = await get(ref(db, `members/${core.activeId}/chat`)); const c = s.val() || [];
-                c.push({s: core.role==='admin'?'cap':'user', file: e.target.result, type: file.type});
-                await update(ref(db, 'members/'+core.activeId), {chat: c});
-            };
-            reader.readAsDataURL(file);
+        delMsg: async (i) => {
+            if(!confirm('هل تريد حذف هذه الرسالة؟')) return;
+            const s = await get(ref(db, 'members/'+core.activeId));
+            let c = s.val().chat || []; c.splice(i, 1);
+            await update(ref(db, 'members/'+core.activeId), { chat: c });
+        },
+        editMsg: async (i) => {
+            const s = await get(ref(db, 'members/'+core.activeId));
+            let c = s.val().chat || [];
+            const nt = prompt('تعديل الرسالة:', c[i].t);
+            if(nt !== null) { c[i].t = nt; await update(ref(db, 'members/'+core.activeId), { chat: c }); }
         }
     };
+
+    // --- الخطوة رقم 3: تسجيل الـ Service Worker لـ PWA ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then(reg => console.log('Power Gym PWA: Service Worker Registered'))
+          .catch(err => console.log('Power Gym PWA: Registration Failed', err));
+      });
+    }
 </script>
 </body>
 </html>
