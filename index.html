@@ -210,7 +210,9 @@
         login: async function() {
             const u = document.getElementById('uInp').value, p = document.getElementById('pInp').value;
             this.role = document.getElementById('loginRole').value;
-            if(this.role === 'admin' && u === 'captain' && p === '1?2?3') {
+            
+            // تحديث بيانات الدخول للآدمن هنا
+            if(this.role === 'admin' && u === 'Cap' && p === '$12()eh?') {
                 this.showUI('admin', {name:'الكابتن رحاب'});
             } else {
                 const snap = await get(ref(db, 'members'));
