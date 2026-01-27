@@ -101,23 +101,37 @@
         <div class="container">
             <div id="adminPanel" style="display: none;">
                 <div class="grid-2">
-                    <div class="p-card">
-                        <h3><i class="fas fa-edit"></i> تخصيص البرامج</h3>
-                        <select id="ai_target_member" class="p-input" onchange="admin.loadMemberData(this.value)"></select>
-                        <div class="grid-2" style="gap:10px;">
-                            <input id="adm_cal" type="number" class="p-input" placeholder="السعرات">
-                            <input id="adm_pro" type="number" class="p-input" placeholder="البروتين">
+                    <div>
+                        <div class="p-card" style="border-right: 5px solid var(--success);">
+                            <h3 style="color:var(--success)"><i class="fas fa-user-plus"></i> تسجيل بطلة جديدة</h3>
+                            <input id="reg_name" class="p-input" placeholder="الاسم الثلاثي">
+                            <div class="grid-2" style="gap:10px;">
+                                <input id="reg_user" class="p-input" placeholder="اسم المستخدم">
+                                <input id="reg_pass" class="p-input" placeholder="كلمة المرور">
+                            </div>
+                            <input id="reg_days" type="number" class="p-input" placeholder="عدد أيام الاشتراك">
+                            <button class="p-btn" style="width:100%; background:var(--success); color:#000;" onclick="admin.createAccount()">تفعيل الحساب فوراً</button>
                         </div>
-                        <textarea id="adm_breakfast" class="p-input" placeholder="الفطور..."></textarea>
-                        <textarea id="adm_lunch" class="p-input" placeholder="الغداء..."></textarea>
-                        <textarea id="adm_dinner" class="p-input" placeholder="العشاء..."></textarea>
-                        <textarea id="adm_workout" class="p-input" placeholder="التمارين..." rows="4"></textarea>
-                        <input id="adm_advice" class="p-input" placeholder="نصيحة اليوم">
-                        <button class="p-btn" style="width:100%; background:var(--purple); color:#fff;" onclick="admin.updatePlan()">حفظ وإرسال التحديثات</button>
+
+                        <div class="p-card">
+                            <h3><i class="fas fa-edit"></i> تخصيص البرامج</h3>
+                            <select id="ai_target_member" class="p-input" onchange="admin.loadMemberData(this.value)"></select>
+                            <div class="grid-2" style="gap:10px;">
+                                <input id="adm_cal" type="number" class="p-input" placeholder="السعرات">
+                                <input id="adm_pro" type="number" class="p-input" placeholder="البروتين">
+                            </div>
+                            <textarea id="adm_breakfast" class="p-input" placeholder="الفطور..."></textarea>
+                            <textarea id="adm_lunch" class="p-input" placeholder="الغداء..."></textarea>
+                            <textarea id="adm_dinner" class="p-input" placeholder="العشاء..."></textarea>
+                            <textarea id="adm_workout" class="p-input" placeholder="التمارين..." rows="4"></textarea>
+                            <input id="adm_advice" class="p-input" placeholder="نصيحة اليوم">
+                            <button class="p-btn" style="width:100%; background:var(--purple); color:#fff;" onclick="admin.updatePlan()">حفظ وإرسال التحديثات</button>
+                        </div>
                     </div>
+
                     <div class="p-card">
                         <h3><i class="fas fa-tasks"></i> إدارة المشتركات والوقت</h3>
-                        <div id="adminTable" style="max-height: 580px; overflow-y: auto;"></div>
+                        <div id="adminTable" style="max-height: 800px; overflow-y: auto;"></div>
                     </div>
                 </div>
             </div>
@@ -178,7 +192,7 @@
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get, set, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, get, set, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyC8qS1LqY3Q2P2LmcvM-M3lW9pNBP3o0JU",
@@ -228,27 +242,64 @@
                             <div style="display:flex; justify-content:space-between; align-items:center;">
                                 <div><b>${m.name}</b><br><small>المتبقي: ${days} يوم</small></div>
                                 <div style="display:flex; gap:5px;">
-                                    <button class="p-btn" style="padding:5px 10px; background:var(--neon-blue)" onclick="admin.freeze('${m.id}', '${m.status}')">${m.status==='frozen'?'تفعيل':'تجميد'}</button>
-                                    <button class="p-btn" style="padding:5px 10px;" onclick="admin.openChat('${m.id}')">شات</button>
+                                    <button class="p-btn" style="padding:5px 10px; background:var(--neon-blue)" onclick="admin.freeze('${m.id}', '${m.status}')">
+                                        <i class="fas fa-snowflake"></i>
+                                    </button>
+                                    <button class="p-btn" style="padding:5px 10px;" onclick="admin.openChat('${m.id}')">
+                                        <i class="fas fa-comments"></i>
+                                    </button>
+                                    <button class="p-btn" style="padding:5px 10px; background:var(--danger); color:white;" onclick="admin.deleteMember('${m.id}', '${m.name}')">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
                                 </div>
-                            </div>
-                            <div style="display:flex; gap:8px; margin-top:10px;">
-                                <input type="number" id="add_d_${m.id}" style="width:60px; margin:0" class="p-input" placeholder="+ يوم">
-                                <button class="p-btn" onclick="admin.changeTime('${m.id}', 1)">+</button>
-                                <button class="p-btn" style="background:var(--danger)" onclick="admin.changeTime('${m.id}', -1)">-</button>
                             </div>
                         </div>`;
                 });
             });
         },
+        createAccount: async () => {
+            const name = document.getElementById('reg_name').value;
+            const user = document.getElementById('reg_user').value;
+            const pass = document.getElementById('reg_pass').value;
+            const days = parseInt(document.getElementById('reg_days').value || 30);
+            
+            if(!name || !user || !pass) return alert('يرجى إكمال جميع البيانات');
+
+            const id = "ID_" + Date.now();
+            let exp = new Date();
+            exp.setDate(exp.getDate() + days);
+
+            const newMember = {
+                id, name, user, pass,
+                expiryDate: exp.toISOString(),
+                status: 'active',
+                calories: 0, protein: 0,
+                breakfast: '', lunch: '', dinner: '', workout: '', advice: '',
+                history: [], chat: []
+            };
+
+            await set(ref(db, 'members/' + id), newMember);
+            alert('تم تسجيل البطلة بنجاح!');
+            document.getElementById('reg_name').value = '';
+            document.getElementById('reg_user').value = '';
+            document.getElementById('reg_pass').value = '';
+        },
+        deleteMember: async (id, name) => {
+            if(confirm(`هل أنتِ متأكدة من حذف المشتركة "${name}" نهائياً؟`)) {
+                await remove(ref(db, 'members/' + id));
+            }
+        },
         loadMemberData: async (id) => {
             if(!id) return;
             const s = await get(ref(db, 'members/'+id));
             const d = s.val();
-            ['cal','pro','breakfast','lunch','dinner','workout','advice'].forEach(k => {
-                const el = document.getElementById('adm_'+k);
-                if(el) el.value = d[k] || (k==='cal' || k==='pro' ? '' : '');
-            });
+            document.getElementById('adm_cal').value = d.calories || '';
+            document.getElementById('adm_pro').value = d.protein || '';
+            document.getElementById('adm_breakfast').value = d.breakfast || '';
+            document.getElementById('adm_lunch').value = d.lunch || '';
+            document.getElementById('adm_dinner').value = d.dinner || '';
+            document.getElementById('adm_workout').value = d.workout || '';
+            document.getElementById('adm_advice').value = d.advice || '';
         },
         updatePlan: async () => {
             const id = document.getElementById('ai_target_member').value;
@@ -262,14 +313,7 @@
                 workout: document.getElementById('adm_workout').value,
                 advice: document.getElementById('adm_advice').value
             });
-            alert('تم التحديث بنجاح');
-        },
-        changeTime: async (id, dir) => {
-            const val = parseInt(document.getElementById('add_d_'+id).value || 0) * dir;
-            const s = await get(ref(db, 'members/'+id));
-            let current = new Date(s.val().expiryDate);
-            current.setDate(current.getDate() + val);
-            await update(ref(db, 'members/'+id), { expiryDate: current.toISOString() });
+            alert('تم تحديث البرنامج بنجاح');
         },
         freeze: async (id, curStatus) => {
             await update(ref(db, 'members/'+id), { status: curStatus === 'frozen' ? 'active' : 'frozen' });
@@ -330,7 +374,7 @@
             const history = s.val().history || [];
             history.push(h);
             await update(ref(db, 'members/'+core.activeId), { history: history });
-            alert('تم تحديث قياساتك بنجاح!');
+            alert('تم التحديث بنجاح!');
         },
         drawChart: (data) => {
             const ctx = document.getElementById('weightChart').getContext('2d');
@@ -340,7 +384,7 @@
                 data: {
                     labels: data.map(d => d.date),
                     datasets: [{
-                        label: 'تطور الوزن (كجم)',
+                        label: 'الوزن',
                         data: data.map(d => d.weight),
                         borderColor: '#ffcc33',
                         backgroundColor: 'rgba(255, 204, 51, 0.1)',
@@ -369,7 +413,7 @@
             document.getElementById('chatInp').value = '';
         },
         delMsg: async (i) => {
-            if(!confirm('هل تريد حذف هذه الرسالة؟')) return;
+            if(!confirm('حذف الرسالة؟')) return;
             const s = await get(ref(db, 'members/'+core.activeId));
             let c = s.val().chat || []; c.splice(i, 1);
             await update(ref(db, 'members/'+core.activeId), { chat: c });
@@ -377,20 +421,18 @@
         editMsg: async (i) => {
             const s = await get(ref(db, 'members/'+core.activeId));
             let c = s.val().chat || [];
-            const nt = prompt('تعديل الرسالة:', c[i].t);
+            const nt = prompt('تعديل:', c[i].t);
             if(nt !== null) { c[i].t = nt; await update(ref(db, 'members/'+core.activeId), { chat: c }); }
         }
     };
 
-    // --- الخطوة رقم 3: تسجيل الـ Service Worker لـ PWA ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Power Gym PWA: Service Worker Registered'))
-          .catch(err => console.log('Power Gym PWA: Registration Failed', err));
+          .then(reg => console.log('PWA Registered'))
+          .catch(err => console.log('PWA Failed', err));
       });
     }
 </script>
 </body>
 </html>
-
