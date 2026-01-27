@@ -81,7 +81,7 @@
                 </select>
                 <input type="text" id="uInp" class="p-input" placeholder="اسم المستخدم">
                 <input type="password" id="pInp" class="p-input" placeholder="كلمة المرور">
-                <button class="p-btn" style="width:100%; margin-top: 10px;" onclick="core.login()">دخول للنظام</button>
+                <button id="loginBtn" class="p-btn" style="width:100%; margin-top: 10px;" onclick="core.login()">دخول للنظام</button>
             </div>
         </div>
     </div>
@@ -208,16 +208,41 @@
     window.core = {
         activeId: null, role: 'user',
         login: async function() {
-            const u = document.getElementById('uInp').value, p = document.getElementById('pInp').value;
+            const btn = document.getElementById('loginBtn');
+            const u = document.getElementById('uInp').value;
+            const p = document.getElementById('pInp').value;
             this.role = document.getElementById('loginRole').value;
             
-            // تحديث بيانات الدخول للآدمن هنا
-            if(this.role === 'admin' && u === 'Cap' && p === '$12()eh?') {
-                this.showUI('admin', {name:'الكابتن رحاب'});
-            } else {
-                const snap = await get(ref(db, 'members'));
-                const m = Object.values(snap.val()||{}).find(x => x.user === u && x.pass === p);
-                if(m) { this.activeId = m.id; this.showUI('user', m); } else alert('خطأ في اسم المستخدم أو كلمة المرور');
+            btn.innerText = "جاري التحقق...";
+            btn.disabled = true;
+
+            try {
+                if(this.role === 'admin') {
+                    // التحقق من الآدمن عبر Firebase
+                    const adminSnap = await get(ref(db, 'admin'));
+                    const adminData = adminSnap.val();
+                    
+                    if(adminData && u === adminData.user && p === adminData.pass) {
+                        this.showUI('admin', {name:'الكابتن رحاب'});
+                    } else {
+                        alert('بيانات دخول الكابتن غير صحيحة');
+                    }
+                } else {
+                    // التحقق من البطلات
+                    const snap = await get(ref(db, 'members'));
+                    const m = Object.values(snap.val()||{}).find(x => x.user === u && x.pass === p);
+                    if(m) { 
+                        this.activeId = m.id; 
+                        this.showUI('user', m); 
+                    } else {
+                        alert('اسم المستخدم أو كلمة المرور للبطلة غير صحيحة');
+                    }
+                }
+            } catch (e) {
+                alert('حدث خطأ في الاتصال بالقاعدة');
+            } finally {
+                btn.innerText = "دخول للنظام";
+                btn.disabled = false;
             }
         },
         showUI: (role, data) => {
@@ -427,14 +452,6 @@
             if(nt !== null) { c[i].t = nt; await update(ref(db, 'members/'+core.activeId), { chat: c }); }
         }
     };
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('PWA Registered'))
-          .catch(err => console.log('PWA Failed', err));
-      });
-    }
 </script>
 </body>
 </html>
